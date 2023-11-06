@@ -1,8 +1,6 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:to_do_test/common/size_config.dart';
-import 'package:to_do_test/page/home/home.dart';
 import 'package:to_do_test/page/pin_code/pincode_controller.dart';
 import 'package:to_do_test/provider/sf_provider.dart';
 import 'package:to_do_test/provider/timeout_provider.dart';
@@ -25,36 +23,9 @@ class _PinCodeScreen extends State<PinCodeScreen> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       context.read<TimeoutProvider>().stop();
-      String? pinCode =
-          await sfProvider.getStringValuesSF(SFProvider.sfPinCodeKey);
-      if (pinCode != '' && pinCode != null) {
-        Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (context) => HomePage()),
-            (route) => false);
-      }
     });
   }
 
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    super.didChangeAppLifecycleState(state);
-
-    switch (state) {
-      case AppLifecycleState.resumed:
-        print('resumed');
-        break;
-      case AppLifecycleState.inactive:
-        print('inactive');
-        break;
-      case AppLifecycleState.paused:
-        print('paused');
-        break;
-      case AppLifecycleState.detached:
-        print('detached');
-        break;
-    }
-  }
 
   @override
   void dispose() {
@@ -63,6 +34,7 @@ class _PinCodeScreen extends State<PinCodeScreen> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       backgroundColor: Color.fromRGBO(235, 237, 253, 1.0),
       body: SafeArea(

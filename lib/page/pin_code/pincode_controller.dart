@@ -15,7 +15,7 @@ class PinCodeController extends ChangeNotifier {
       notifyListeners();
     }
 
-    if (enteredPin.length == 6 && enteredPin == '111111') {
+    if (enteredPin.length == 6 && enteredPin == '123456') {
       sfProvider.addStringToSF(SFProvider.sfPinCodeKey, enteredPin);
       await Future.delayed(const Duration(milliseconds: 300));
       Navigator.pushAndRemoveUntil(

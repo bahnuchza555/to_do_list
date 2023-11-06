@@ -1,4 +1,4 @@
-import 'dart:developer';
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -43,19 +43,8 @@ class _HomePage extends State<HomePage>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
 
-    switch (state) {
-      case AppLifecycleState.resumed:
-        print('resumed');
-        break;
-      case AppLifecycleState.inactive:
-        print('inactive');
-        break;
-      case AppLifecycleState.paused:
-        print('paused');
-        break;
-      case AppLifecycleState.detached:
-        print('detached');
-        break;
+    if (state == AppLifecycleState.detached) {
+      sfProvider.removeFromSF(SFProvider.sfPinCodeKey);
     }
   }
 
@@ -66,12 +55,11 @@ class _HomePage extends State<HomePage>
   }
 
   void _handleTimeout() async {
-    log('timeout: ${DateTime.now().toIso8601String()} }');
     sfProvider.removeFromSF(SFProvider.sfPinCodeKey);
     Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (context) => PinCodeScreen()),
-            (route) => false);
+        (route) => false);
   }
 
   @override
