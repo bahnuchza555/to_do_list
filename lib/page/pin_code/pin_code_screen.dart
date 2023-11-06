@@ -1,8 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:to_do_test/common/size_config.dart';
 import 'package:to_do_test/page/home/home.dart';
 import 'package:to_do_test/provider/sf_provider.dart';
+import 'package:to_do_test/provider/timeout_provider.dart';
 
 double defaultSize = SizeConfig.defaultSize ?? 0;
 
@@ -11,22 +13,31 @@ class PinCodeScreen extends StatefulWidget {
   State<StatefulWidget> createState() => _PinCodeScreen();
 }
 
-class _PinCodeScreen extends State<PinCodeScreen> {
+class _PinCodeScreen extends State<PinCodeScreen> with WidgetsBindingObserver {
   String enteredPin = '';
   SFProvider sfProvider = SFProvider();
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      String? pinCode = await sfProvider.getStringValuesSF(SFProvider.sfPinCodeKey);
+      context.read<TimeoutProvider>().stop();
+      String? pinCode =
+          await sfProvider.getStringValuesSF(SFProvider.sfPinCodeKey);
       if (pinCode != '' && pinCode != null) {
         Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(builder: (context) => HomePage()),
-                (route) => false);
+            (route) => false);
       }
     });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    // context.read<TimeoutProvider>().dispose();
   }
 
   @override

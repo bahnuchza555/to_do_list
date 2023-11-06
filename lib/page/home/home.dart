@@ -1,9 +1,13 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:to_do_test/common/lazy_load.dart';
 import 'package:to_do_test/common/size_config.dart';
 import 'package:to_do_test/page/home/home_controller.dart';
+import 'package:to_do_test/page/pin_code/pin_code_screen.dart';
 import 'package:to_do_test/provider/sf_provider.dart';
+import 'package:to_do_test/provider/timeout_provider.dart';
 
 double defaultSize = SizeConfig.defaultSize ?? 0;
 
@@ -20,6 +24,7 @@ class _HomePage extends State<HomePage>
   late HomeController homeController;
   String status = 'TODO';
   SFProvider sfProvider = SFProvider();
+  late TimeoutProvider _timeoutProvider;
 
   @override
   void initState() {
@@ -28,6 +33,9 @@ class _HomePage extends State<HomePage>
     homeController = HomeController(context);
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      _timeoutProvider = context.read<TimeoutProvider>();
+      _timeoutProvider.addTimeoutListener(_handleTimeout);
+      _timeoutProvider.start();
     });
   }
 
@@ -46,7 +54,6 @@ class _HomePage extends State<HomePage>
         print('paused');
         break;
       case AppLifecycleState.detached:
-        sfProvider.clearAll();
         print('detached');
         break;
     }
@@ -56,6 +63,15 @@ class _HomePage extends State<HomePage>
     super.dispose();
     _tabController.dispose();
     homeController.scrollController.dispose();
+  }
+
+  void _handleTimeout() async {
+    log('timeout: ${DateTime.now().toIso8601String()} }');
+    sfProvider.removeFromSF(SFProvider.sfPinCodeKey);
+    Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => PinCodeScreen()),
+            (route) => false);
   }
 
   @override
