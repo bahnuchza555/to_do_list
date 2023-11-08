@@ -13,15 +13,15 @@ class PinCodeController extends ChangeNotifier {
     if (enteredPin.length < 6) {
       enteredPin += val;
       notifyListeners();
-    }
 
-    if (enteredPin.length == 6 && enteredPin == '123456') {
-      sfProvider.addStringToSF(SFProvider.sfPinCodeKey, enteredPin);
-      await Future.delayed(const Duration(milliseconds: 300));
-      Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) => HomePage()),
-              (route) => false);
+      if (enteredPin.length == 6 && enteredPin == '123456') {
+        sfProvider.addStringToSF(SFProvider.sfPinCodeKey, enteredPin);
+        await Future.delayed(const Duration(milliseconds: 300));
+        Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => HomePage()),
+                (route) => false);
+      }
     }
   }
 

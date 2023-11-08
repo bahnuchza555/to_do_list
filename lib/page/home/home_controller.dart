@@ -12,27 +12,30 @@ class HomeController extends ChangeNotifier {
   }
 
   final BuildContext context;
-  List<TaskModel> tasks = [];
-  bool isFirstLoad = true;
-  bool nextPage = false;
+  Map<String, List<TaskModel>>? tasks = {};
   bool isLoadMore = false;
   int offset = 0;
   late ScrollController scrollController;
-  List<DateTime> dateList = [];
 
-  onDelete(int index) {
-    tasks.removeAt(index);
+  onDelete(String key, String taskId) {
+    if (tasks?.containsKey(key) == true) {
+      tasks?[key]?.removeWhere((element) => element.id == taskId);
+      if (tasks?[key]?.isEmpty == true) {
+        tasks?.remove(key);
+      }
+    } else {
+      print('is not contains key');
+    }
     notifyListeners();
   }
 
   loadData(String status, {bool? isReset, int limit = 20}) async {
     if (isReset == true) {
-      tasks = [];
+      tasks = {};
       offset = 0;
       notifyListeners();
     }
     try {
-
       var temp = await ApiService.getTasks(
           offset: offset,
           limit: limit,
@@ -41,18 +44,35 @@ class HomeController extends ChangeNotifier {
           status: status);
 
       if (temp.tasks?.isNotEmpty == true) {
-        temp.tasks?.sort((a, b) => a.id!.compareTo(b.id!));
-        tasks.addAll(temp.tasks?.reversed ?? []);
-        // tasks.reversed.forEach((element) {
-        //   var date = DateFormat('dd MMM yyyy').format(element.createdAt!);
-        //   dateList.add(DateTime.parse(date));
-        // });
-        // dateList.sort((a, b) => a.compareTo(b));
+        print(temp.tasks?.length);
+        temp.tasks?.sort((a, b) => a.createdAt!.compareTo(b.createdAt!));
+
+        removeDuplicateTasks(temp.tasks!);
+
+        var newTasks = groupTasksByCreatedAt(temp.tasks!);
+        tasks?.addAll(newTasks);
+
         offset += 1;
       }
     } catch (error) {
       log(error.toString());
     }
     notifyListeners();
+  }
+
+  void removeDuplicateTasks(List<TaskModel> tasks) {
+    tasks.toSet().toList();
+  }
+
+  Map<String, List<TaskModel>> groupTasksByCreatedAt(List<TaskModel> tasks) {
+    Map<String, List<TaskModel>> groupedTasks = {};
+    for (var task in tasks) {
+      var dateFormat = DateFormat('dd MMM yyyy').format(task.createdAt!);
+      if (!groupedTasks.containsKey(dateFormat)) {
+        groupedTasks[dateFormat] = [];
+      }
+      groupedTasks[dateFormat]?.add(task);
+    }
+    return groupedTasks;
   }
 }

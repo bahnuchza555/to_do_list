@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:to_do_test/common/lazy_load.dart';
 import 'package:to_do_test/common/size_config.dart';
+import 'package:to_do_test/model/task_model.dart';
 import 'package:to_do_test/page/home/home_controller.dart';
 import 'package:to_do_test/page/pin_code/pin_code_screen.dart';
 import 'package:to_do_test/provider/sf_provider.dart';
@@ -71,8 +72,8 @@ class _HomePage extends State<HomePage>
         return Column(
           children: [
             header(con),
-            _bodyList(con),
-            SizedBox(height: defaultSize * 2.5),
+            _sectionList(con),
+            SizedBox(height: defaultSize * 3.6),
           ],
         );
       }),
@@ -104,7 +105,10 @@ class _HomePage extends State<HomePage>
                 height: defaultSize * 4.0,
                 width: defaultSize * 4.0,
                 decoration: BoxDecoration(
-                    color: Colors.red,
+                    image: DecorationImage(
+                      image: AssetImage("assets/images/RM.png"),
+                      fit: BoxFit.cover,
+                    ),
                     borderRadius: BorderRadius.all(Radius.circular(32.0))),
               )
             ],
@@ -205,74 +209,39 @@ class _HomePage extends State<HomePage>
     );
   }
 
-  // Widget _sectionList(HomeController con) {
-  //   return Expanded(child: ListView);
-  // }
-
-  Widget _bodyList(HomeController con) {
+  Widget _sectionList(HomeController con) {
     return LazyLoad(
-      onBottom: () async {
-        setState(() {
-          con.isLoadMore = true;
-        });
-        await Future.delayed(const Duration(seconds: 2));
-        await con.loadData(status, limit: 10);
-        setState(() {
-          con.isLoadMore = false;
-        });
-      },
-      child: Expanded(
-          child: ListView.builder(
-              controller: con.scrollController,
-              padding: EdgeInsets.symmetric(horizontal: 16.0),
-              physics: AlwaysScrollableScrollPhysics(),
-              itemCount: con.tasks.length,
-              itemBuilder: (context, index) {
-                var task = con.tasks[index];
-                return Dismissible(
-                  key: Key('${task.id}'),
-                  onDismissed: (e) {
-                    con.onDelete(index);
-                  },
-                  background: Container(
-                    color: Colors.red,
-                    child: Column(
+        onBottom: () async {
+          setState(() {
+            con.isLoadMore = true;
+          });
+          await Future.delayed(const Duration(seconds: 2));
+          await con.loadData(status, limit: 10);
+          setState(() {
+            con.isLoadMore = false;
+            con.scrollController.jumpTo(0.0);
+          });
+        },
+        child: Expanded(
+          child: con.tasks == null
+              ? Container()
+              : ListView.builder(
+                  controller: con.scrollController,
+                  padding: EdgeInsets.symmetric(horizontal: defaultSize * 1.6),
+                  itemCount: con.tasks?.length,
+                  itemBuilder: (context, index) {
+                    String? date = con.tasks?.keys.elementAt(index);
+                    List<TaskModel>? tasks = con.tasks?[date] ?? [];
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(Icons.delete_forever,
-                            color: Colors.white, size: 30.0),
                         Text(
-                          'Delete',
-                          style: TextStyle(color: Colors.white),
-                        )
-                      ],
-                    ),
-                  ),
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(vertical: 8.0),
-                    child: Column(
-                      children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Icon(Icons.add),
-                            SizedBox(width: 5.0),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text('${task.title}'),
-                                  Text('${task.description}'),
-                                ],
-                              ),
-                            ),
-                            Icon(
-                              Icons.more_vert,
-                              size: defaultSize * 1.5,
-                              color: Colors.grey.withOpacity(0.8),
-                            ),
-                          ],
+                          '$date',
+                          style: TextStyle(
+                              fontSize: 20.0, fontWeight: FontWeight.w700),
                         ),
-                        if (index == con.tasks.length - 1)
+                        _taskList(tasks, con, date),
+                        if (index == con.tasks!.length - 1)
                           Visibility(
                               visible: con.isLoadMore,
                               child: Padding(
@@ -284,10 +253,79 @@ class _HomePage extends State<HomePage>
                                 ),
                               ))
                       ],
-                    ),
+                    );
+                  }),
+        ));
+  }
+
+  Widget _taskList(List<TaskModel>? tasks, HomeController con, String? key) {
+    return tasks == null
+        ? Container()
+        : ListView.builder(
+            shrinkWrap: true,
+            primary: false,
+            padding: EdgeInsets.zero,
+            itemCount: tasks.length,
+            itemBuilder: (context, index) {
+              var task = tasks[index];
+              return Dismissible(
+                key: Key('${tasks[index].id}'),
+                onDismissed: (e) {
+                  con.onDelete('$key', '${task.id}');
+                },
+                background: Container(
+                  color: Colors.red,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.delete_forever,
+                          color: Colors.white, size: 30.0),
+                      Text(
+                        'Delete',
+                        style: TextStyle(color: Colors.white),
+                      )
+                    ],
                   ),
-                );
-              })),
-    );
+                ),
+                child: Container(
+                  height: 100,
+                  width: 500,
+                  child: Column(
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Container(
+                              height: defaultSize * 5.0,
+                              width: defaultSize * 5.0,
+                              decoration: BoxDecoration(
+                                  image: DecorationImage(
+                                    image: AssetImage("assets/images/mk.png"),
+                                    fit: BoxFit.cover,
+                                  ),
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(8.0)))),
+                          SizedBox(width: 5.0),
+                          Expanded(
+                            child: Container(
+                              child: ListTile(
+                                title: Text('${task.title}'),
+                                subtitle: Text('${task.description}', maxLines: 2),
+                              ),
+                            ),
+                          ),
+                          Icon(
+                            Icons.more_vert,
+                            size: defaultSize * 1.5,
+                            color: Colors.grey.withOpacity(0.8),
+                          ),
+                        ],
+                      ),
+                      Divider(color: Colors.black.withOpacity(0.4),)
+                    ],
+                  ),
+                ),
+              );
+            });
   }
 }
