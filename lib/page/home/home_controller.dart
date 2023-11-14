@@ -44,7 +44,6 @@ class HomeController extends ChangeNotifier {
           status: status);
 
       if (temp.tasks?.isNotEmpty == true) {
-        print(temp.tasks?.length);
         temp.tasks?.sort((a, b) => a.createdAt!.compareTo(b.createdAt!));
 
         removeDuplicateTasks(temp.tasks!);
